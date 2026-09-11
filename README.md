@@ -12,7 +12,7 @@ studydemo-backend/
 ├─ src/main/
 │  ├─ java/com/studydemo/server/
 │  │  ├─ StudyDemoServerApplication.java   # 启动类
-│  │  ├─ config/CorsConfig.java            # 跨域：放行前端 5173
+│  │  ├─ config/CorsConfig.java            # 跨域：来源从 app.cors.allowed-origins 读
 │  │  ├─ constant/RedisKeyConstants.java    # Redis 键常量（私有构造）
 │  │  ├─ common/Result.java / ResultCode.java  # 统一返回 + 状态码常量
 │  │  ├─ dto/HelloVO.java                  # 接口返回 VO
@@ -22,12 +22,44 @@ studydemo-backend/
 │  │  ├─ service/impl/HelloServiceImpl.java # 业务实现（Redis 计数 + MySQL 落库）
 │  │  └─ controller/HelloController.java     # GET /api/hello
 │  └─ resources/
-│     ├─ application.yaml     # 通用配置（激活 dev）
-│     ├─ application-dev.yaml # 开发：MySQL + Redis（给定地址）+ 自动建表
-│     ├─ application-prod.yaml# 生产：连接池/SSL/日志调成生产向
+│     ├─ application.yaml     # 通用配置（端口 + 激活 dev）
+│     ├─ application-dev.yaml # 开发：MySQL + Redis（给定地址）+ 自动建表 + 跨域来源
+│     ├─ application-prod.yaml# 生产：连接池/SSL/日志调成生产向 + 跨域来源
 │     └─ schema.sql          # 幂等建表
 └─ .gitignore
 ```
+
+## 配置项
+
+### 端口
+
+`application.yaml` 里统一配置，默认 8080：
+
+```yaml
+server:
+  port: ${SERVER_PORT:8080}   # 可用环境变量覆盖
+```
+
+```sh
+# 环境变量覆盖（Windows 用 set）
+set SERVER_PORT=9090 && mvn spring-boot:run
+
+# 或启动参数覆盖
+java -jar target/studydemo-server-1.0.0.jar --server.port=9090
+```
+
+> ⚠️ 改了端口，前端 `.env.development` 里的 `DEV_PROXY_TARGET` 要跟着改，
+> 否则前端会被代理到一个没人监听的端口，表现是 502 而不是跨域报错。
+
+### 跨域来源
+
+来自 `app.cors.allowed-origins`（多个用逗号分隔），在 profile 各自的 yaml 里配置：
+
+- dev：`http://localhost:5173,http://127.0.0.1:5173`（端口对应前端 `.env.development` 的 `DEV_SERVER_PORT`）
+- prod：前端真实域名
+
+> 前端走 Vite 代理（开发）/ Nginx 反代（生产）时，浏览器看到的是同源请求，**根本不会触发跨域**，
+> 这里的配置是「前端直连后端」场景的兜底。
 
 ## 那个接口
 
@@ -80,24 +112,26 @@ studydemo-backend/
 
 ## 前端怎么调（前后端分离试水）
 
-前端 Vite 跑在 `http://localhost:5173`，后端已在 `CorsConfig` 中放行该源。直接 fetch 即可：
+前端（`studydemo`）**不直连**本服务，而是请求同源的 `/api/hello`，由中间层转发过来：
 
-```ts
-// 在 Vue 组件里
-const res = await fetch('http://localhost:8080/api/hello?name=Vue')
-const json = await res.json()
-console.log(json.data.message) // Hello, Vue! 欢迎来到 studydemo 前后端分离示例。
+```
+浏览器 (5173) → /api/hello → Vite Dev Server（server.proxy）→ 127.0.0.1:8080 → MySQL + Redis
 ```
 
-对应后端封装（axios 写法）：
+好处是浏览器眼里始终同源，不触发跨域，也不用维护 CORS 白名单。前端调用代码在 `src/api/`：
 
 ```ts
-import axios from 'axios'
-const api = axios.create({ baseURL: 'http://localhost:8080' })
-const { data } = await api.get('/api/hello', { params: { name: 'Vue' } })
+import { fetchHello } from '@/api/hello'
+
+const vo = await fetchHello('Vue')
+console.log(vo.message) // Hello, Vue! 欢迎来到 studydemo 前后端分离示例。
 ```
 
-> 生产环境建议用 Nginx 反向代理把 `/api` 转发到后端，避免跨域、也隐藏端口。
+> 生产环境建议用 Nginx 反向代理把 `/api/` 转发到后端，避免跨域、也隐藏端口。
+> Nginx 要写 `location /api/` 而不是 `location /api` —— 后者是前缀匹配，会把 `/api-xxx` 路径一起吞掉。
+
+如果确实要让前端**直连**本服务（真跨域），把前端 `.env.*` 的 `VITE_API_BASE` 改成完整地址
+（如 `http://localhost:8080/api`），并在本服务的 `app.cors.allowed-origins` 里放行前端域名。
 
 ## P3C 规范落点（本项目已遵守）
 
@@ -136,3 +170,12 @@ mvn pmd:check
 | 启动建 Redis 连接工厂时 `NoClassDefFoundError: org/apache/commons/pool2/...` | 配了 `spring.redis.lettuce.pool.*` 但缺 `commons-pool2`（starter 不自带） | 已在 `pom.xml` 引入 `org.apache.commons:commons-pool2` |
 | `Access denied for user 'root'@'<公网IP>' (using password: YES)` | ① 密码填错（本次就是这个：实际密码是 `Aa@123`，不是 `Aa@123456`）；② 或 MySQL 未放行该主机的远程登录 | 先核对密码；若密码正确仍被拒，在服务器执行授权：`CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'Aa@123'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;`（生产建议改用只授权 `study_db` 的专属账号） |
 | 端口不是 8080 | 存在 `SERVER_PORT` 环境变量覆盖了 yaml | 检查环境变量，或用 `mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8080` |
+
+## 前端侧常见现象（联调时先看这里）
+
+| 现象 | 原因 | 处理 |
+| --- | --- | --- |
+| 前端页面提示「请求发不出去」，浏览器 Network 里 `/api/hello` 是 500/502 | 后端没启动，或端口与前端 `DEV_PROXY_TARGET` 不一致 | 先 `curl "http://127.0.0.1:8080/api/hello"` 确认后端在跑，再核对前端 `.env.development` 的 `DEV_PROXY_TARGET` |
+| 代理报 `502 upstream connect failed ... (os error 10061)`，但后端日志显示启动成功 | 代理目标写成了 `localhost`。Node 解析 `localhost` 优先拿 IPv6 `::1`，而 Spring Boot 默认只监听 IPv4 | 前端代理目标改用 `127.0.0.1` |
+| 直接访问前端路由 `/api-xxx` 拿到了后端 JSON 而不是页面 | 代理规则 `'/api'` 是前缀匹配，把前端路由也转发了 | 代理规则改成 `^/api/`；Nginx 同理写 `location /api/` |
+| 直连模式下浏览器报 CORS | 前端来源不在 `app.cors.allowed-origins` 里（比如 5173 被占用、Vite 自动跳到了 5174） | 要么走代理（推荐，天然无跨域），要么把新来源补进配置 |

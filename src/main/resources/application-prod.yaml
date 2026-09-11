@@ -43,3 +43,11 @@ mybatis-plus:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+
+app:
+  cors:
+    # 生产前端域名，多个用逗号分隔。
+    # 推荐做法是让 Nginx 把 /api 反代到本服务（前端页面与接口同源），
+    # 那样跨域根本不会发生，这里只填真实域名即可。
+    # ⚠️ 上线前把下面的示例域名换成你自己的。
+    allowed-origins: https://your-domain.com

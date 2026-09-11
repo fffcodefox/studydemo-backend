@@ -46,3 +46,10 @@ mybatis-plus:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+
+app:
+  cors:
+    # 允许访问接口的前端来源，多个用逗号分隔。
+    # 端口要和前端 .env.development 的 DEV_SERVER_PORT 一致（默认 5173）。
+    # 前端走 Vite 代理时用不到跨域，这里是「前端直连后端」时的兜底。
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173

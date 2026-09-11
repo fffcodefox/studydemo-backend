@@ -6,7 +6,7 @@ spring:
     # Connector/J 8 会自动与服务端协商为 utf8mb4；写成 utf8mb4 会直接启动失败。
     url: jdbc:mysql://120.48.43.201:3306/study_db?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: Aa@123456
+    password: Aa@123
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       minimum-idle: 5

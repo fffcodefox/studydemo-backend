@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: studydemo-server
+  profiles:
+    # 默认激活 dev 环境；生产用 --spring.profiles.active=prod 启动
+    active: dev
+  jackson:
+    # P3C 规约：日期格式必须用小写 yyyy，禁止使用大写的 YYYY
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+logging:
+  level:
+    com.studydemo: debug
+    root: info

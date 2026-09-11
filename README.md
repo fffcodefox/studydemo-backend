@@ -53,13 +53,14 @@ studydemo-backend/
 
 ## 运行步骤
 
-1. **建库**（MySQL 在 `120.48.43.201`，账号 `root / Aa@123456`）：
+1. **建库**（MySQL 在 `120.48.43.201`，账号 `root / Aa@123`）：
 
    ```sql
-   CREATE DATABASE IF NOT EXISTS studydemo DEFAULT CHARACTER SET utf8mb4;
+   CREATE DATABASE IF NOT EXISTS study_db DEFAULT CHARACTER SET utf8mb4;
    ```
 
-   表 `t_demo_message` 会在 dev 环境启动时自动创建（`schema.sql`，幂等）。
+   > ✅ `study_db` 与表 `t_demo_message` 已在服务器上建好（2026-09-12 已验证连通，MySQL 8.0.45）。
+   > 表在 dev 环境启动时也会由 `schema.sql` 幂等创建，所以这一步现在可以跳过。
 
 2. **启动**（需要 JDK 11）：
 
@@ -133,5 +134,5 @@ mvn pmd:check
 | --- | --- | --- |
 | `java.sql.SQLException: Unsupported character encoding 'utf8mb4'` | JDBC URL 的 `characterEncoding` 填了 MySQL 字符集名 | 必须填 **Java 字符集名 `UTF-8`**，Connector/J 8 会自动协商为服务端 `utf8mb4`。已修正 |
 | 启动建 Redis 连接工厂时 `NoClassDefFoundError: org/apache/commons/pool2/...` | 配了 `spring.redis.lettuce.pool.*` 但缺 `commons-pool2`（starter 不自带） | 已在 `pom.xml` 引入 `org.apache.commons:commons-pool2` |
-| `Access denied for user 'root'@'<公网IP>' (using password: YES)` | MySQL 未放行该主机的远程登录 / 密码不符 | 在服务器执行上面的授权 SQL；确认密码与 `bind-address`、云安全组 |
+| `Access denied for user 'root'@'<公网IP>' (using password: YES)` | ① 密码填错（本次就是这个：实际密码是 `Aa@123`，不是 `Aa@123456`）；② 或 MySQL 未放行该主机的远程登录 | 先核对密码；若密码正确仍被拒，在服务器执行授权：`CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'Aa@123'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;`（生产建议改用只授权 `study_db` 的专属账号） |
 | 端口不是 8080 | 存在 `SERVER_PORT` 环境变量覆盖了 yaml | 检查环境变量，或用 `mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8080` |

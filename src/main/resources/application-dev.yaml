@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # 开发库：120.48.43.201:3306 / studydemo / root / Aa@123456
+    # 开发库：120.48.43.201:3306 / study_db / root / Aa@123
     # 注意：characterEncoding 必须填 Java 字符集名 UTF-8（不是 utf8mb4），
     # Connector/J 8 会自动与服务端协商为 utf8mb4；写成 utf8mb4 会直接启动失败。
     url: jdbc:mysql://120.48.43.201:3306/study_db?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true

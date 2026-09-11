@@ -123,6 +123,15 @@ mvn pmd:check
 
 ## 环境说明
 
-- `application-dev.yaml` / `application-prod.yaml` 当前都指向你提供的 `120.48.43.201` 那套 MySQL/Redis。
+- `application-dev.yaml` / `application-prod.yaml` 当前都指向你提供的 `120.48.43.201` 那套 MySQL/Redis，库名均为 `study_db`。
 - ⚠️ 生产环境请改为内网地址，并改用**专属受限账号**，不要用 `root` 直连；密码走配置中心或环境变量注入，勿明文提交。
 - Redis `db 0`、无密码；生产建议启用密码与 ACL。
+
+## 排坑记录（启动失败常见原因）
+
+| 现象 | 原因 | 处理 |
+| --- | --- | --- |
+| `java.sql.SQLException: Unsupported character encoding 'utf8mb4'` | JDBC URL 的 `characterEncoding` 填了 MySQL 字符集名 | 必须填 **Java 字符集名 `UTF-8`**，Connector/J 8 会自动协商为服务端 `utf8mb4`。已修正 |
+| 启动建 Redis 连接工厂时 `NoClassDefFoundError: org/apache/commons/pool2/...` | 配了 `spring.redis.lettuce.pool.*` 但缺 `commons-pool2`（starter 不自带） | 已在 `pom.xml` 引入 `org.apache.commons:commons-pool2` |
+| `Access denied for user 'root'@'<公网IP>' (using password: YES)` | MySQL 未放行该主机的远程登录 / 密码不符 | 在服务器执行上面的授权 SQL；确认密码与 `bind-address`、云安全组 |
+| 端口不是 8080 | 存在 `SERVER_PORT` 环境变量覆盖了 yaml | 检查环境变量，或用 `mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8080` |

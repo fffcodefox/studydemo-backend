@@ -3,3 +3,9 @@ target/
 *.iml
 .idea/
 *.log
+
+# 调试临时产物（编译/探测日志等），不要提交
+_*.txt
+_*.log
+_*.err
+_*.json

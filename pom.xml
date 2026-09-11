@@ -32,6 +32,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
+        <!-- Lettuce 连接池必需：application yaml 里配了 spring.redis.lettuce.pool.*，
+             该功能依赖 commons-pool2，而 spring-boot-starter-data-redis 并不自带，
+             缺失会在启动建 Redis 连接工厂时抛 NoClassDefFoundError。 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>

@@ -18,10 +18,11 @@ spring:
     init:
       mode: never
   redis:
+    # ⚠️ 2026-09-12 Redis 未授权入侵后已强制加密码，连接必须带密码
     host: 120.48.43.201
     port: 6379
     database: 0
-    password:
+    password: 200721377e56c52a563c928f679574d7
     timeout: 5000ms
     lettuce:
       pool:

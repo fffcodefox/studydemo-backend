@@ -21,11 +21,12 @@ spring:
       continue-on-error: true
       schema-locations: classpath:schema.sql
   redis:
-    # 开发 Redis：120.48.43.201:6379，db 0，无密码
+    # 开发 Redis：120.48.43.201:6379，db 0
+    # ⚠️ 2026-09-12 该 Redis 曾被未授权入侵植入挖矿，已强制设置密码(dp 见 redis 入侵处置记录)
     host: 120.48.43.201
     port: 6379
     database: 0
-    password:
+    password: 200721377e56c52a563c928f679574d7
     timeout: 5000ms
     lettuce:
       pool:

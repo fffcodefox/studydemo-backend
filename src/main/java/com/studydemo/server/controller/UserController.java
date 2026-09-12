@@ -5,14 +5,7 @@ import com.studydemo.server.dto.UserQueryDTO;
 import com.studydemo.server.dto.UserSaveDTO;
 import com.studydemo.server.dto.UserVO;
 import com.studydemo.server.service.UserService;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -32,31 +25,41 @@ public class UserController {
         this.userService = userService;
     }
 
-    /** 列表查询：支持 username/phone 模糊、status 精确过滤 */
+    /**
+     * 列表查询：支持 username/phone 模糊、status 精确过滤
+     */
     @GetMapping
     public Result<List<UserVO>> list(UserQueryDTO query) {
         return Result.success(userService.listUsers(query));
     }
 
-    /** 详情查询 */
+    /**
+     * 详情查询
+     */
     @GetMapping("/{id}")
     public Result<UserVO> detail(@PathVariable Long id) {
         return Result.success(userService.getUser(id));
     }
 
-    /** 新增 */
+    /**
+     * 新增
+     */
     @PostMapping
     public Result<UserVO> create(@Valid @RequestBody UserSaveDTO dto) {
         return Result.success(userService.createUser(dto));
     }
 
-    /** 修改 */
+    /**
+     * 修改
+     */
     @PutMapping("/{id}")
     public Result<UserVO> update(@PathVariable Long id, @Valid @RequestBody UserSaveDTO dto) {
         return Result.success(userService.updateUser(id, dto));
     }
 
-    /** 删除（逻辑删除） */
+    /**
+     * 删除（逻辑删除）
+     */
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         userService.deleteUser(id);

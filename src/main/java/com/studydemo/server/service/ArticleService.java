@@ -1,6 +1,6 @@
 package com.studydemo.server.service;
 
-import com.studydemo.server.common.PageResult;
+import com.studydemo.server.common.PageVO;
 import com.studydemo.server.dto.ArticleQueryDTO;
 import com.studydemo.server.dto.ArticleSaveDTO;
 import com.studydemo.server.dto.ArticleVO;
@@ -14,9 +14,9 @@ public interface ArticleService {
      * 条件分页查询文章列表，按创建时间倒序。
      *
      * @param query 过滤条件（标题模糊、状态精确）+ 分页参数
-     * @return 分页结果，records 为不含正文的文章视图对象
+     * @return 分页结果（对齐 cdp 的 PageVO），records 为不含正文的文章视图对象
      */
-    PageResult<ArticleVO> listArticles(ArticleQueryDTO query);
+    PageVO<ArticleVO> listArticles(ArticleQueryDTO query);
 
     /**
      * 查询单篇文章详情（含正文）。

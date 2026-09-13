@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.studydemo.server.common.PageResult;
+import com.studydemo.server.common.PageVO;
 import com.studydemo.server.domain.Article;
 import com.studydemo.server.dto.ArticleQueryDTO;
 import com.studydemo.server.dto.ArticleSaveDTO;
@@ -29,7 +29,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public PageResult<ArticleVO> listArticles(ArticleQueryDTO query) {
+    public PageVO<ArticleVO> listArticles(ArticleQueryDTO query) {
         // @TableLogic 自动追加 is_deleted = 0；次级排序用 id 保证翻页稳定
         LambdaQueryWrapper<Article> wrapper = Wrappers.<Article>lambdaQuery()
                 .like(StringUtils.isNotBlank(query.getTitle()), Article::getTitle, query.getTitle())
@@ -45,7 +45,7 @@ public class ArticleServiceImpl implements ArticleService {
         List<ArticleVO> records = result.getRecords().stream()
                 .map(this::toListVo)
                 .collect(Collectors.toList());
-        return PageResult.of(result, records);
+        return PageVO.of(result, records);
     }
 
     @Override

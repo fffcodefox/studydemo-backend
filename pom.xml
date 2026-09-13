@@ -60,6 +60,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Swagger 文档（@Tag / @Operation 等 v3 注解），对齐 cdp_service 后端风格。
+             1.7.x 适配 Spring Boot 2.7，2.x 需要 Spring Boot 3 故不用。 -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>1.7.0</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,10 +1,9 @@
 package com.studydemo.server.service;
 
+import com.studydemo.server.common.PageResult;
 import com.studydemo.server.dto.UserQueryDTO;
 import com.studydemo.server.dto.UserSaveDTO;
 import com.studydemo.server.dto.UserVO;
-
-import java.util.List;
 
 /**
  * 用户业务接口。
@@ -12,12 +11,12 @@ import java.util.List;
 public interface UserService {
 
     /**
-     * 条件查询用户列表，按创建时间倒序。
+     * 条件分页查询用户列表，按创建时间倒序。
      *
-     * @param query 可选过滤条件（用户名/手机号模糊、状态精确）
-     * @return 用户视图对象列表
+     * @param query 过滤条件（用户名/手机号模糊、状态精确）+ 分页参数（页码/每页条数）
+     * @return 分页结果，records 为当前页的用户视图对象
      */
-    List<UserVO> listUsers(UserQueryDTO query);
+    PageResult<UserVO> listUsers(UserQueryDTO query);
 
     /**
      * 查询单个用户详情。

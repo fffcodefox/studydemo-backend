@@ -1,7 +1,10 @@
 package com.studydemo.server.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.studydemo.server.common.PageResult;
 import com.studydemo.server.domain.SysUser;
 import com.studydemo.server.dto.UserQueryDTO;
 import com.studydemo.server.dto.UserSaveDTO;
@@ -33,14 +36,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserVO> listUsers(UserQueryDTO query) {
+    public PageResult<UserVO> listUsers(UserQueryDTO query) {
         // 条件按需拼接；@TableLogic 自动追加 is_deleted = 0
-        List<SysUser> list = sysUserMapper.selectList(Wrappers.<SysUser>lambdaQuery()
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.<SysUser>lambdaQuery()
                 .like(StringUtils.isNotBlank(query.getUsername()), SysUser::getUsername, query.getUsername())
                 .like(StringUtils.isNotBlank(query.getPhone()), SysUser::getPhone, query.getPhone())
                 .eq(query.getStatus() != null, SysUser::getStatus, query.getStatus())
-                .orderByDesc(SysUser::getCreateTime));
-        return list.stream().map(this::toVo).collect(Collectors.toList());
+                .orderByDesc(SysUser::getCreateTime)
+                // 次级排序必须有：createTime 相同的记录在翻页时顺序不稳定，
+                // 会导致同一行在第 1 页和第 2 页各出现一次、或者整行被跳过
+                .orderByDesc(SysUser::getId);
+
+        Page<SysUser> page = new Page<>(query.resolvePageNum(), query.resolvePageSize());
+        // 分页由 MybatisPlusConfig 注册的 PaginationInnerInterceptor 落地；
+        // 少了那个插件，这里会静默变成全表查询
+        Page<SysUser> result = sysUserMapper.selectPage(page, wrapper);
+
+        List<UserVO> records = result.getRecords().stream().map(this::toVo).collect(Collectors.toList());
+        return PageResult.of(result, records);
     }
 
     @Override

@@ -1,12 +1,17 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # 开发库：120.48.43.201:3306 / study_db / root / Aa@123
+    # 开发库：120.48.43.201:3306 / study_db
+    # ⚠️ 本机连远程命中的是 "root@%" 这个账号（不是 root@localhost），两者口令不同：
+    #     root@localhost → Aa@123          （只有服务器本机 socket / 宝塔面板用得到）
+    #     root@%         → 下面这串 28 位随机口令（本机连远程走的是它）
+    #   所以这里必须用 root@% 的口令，否则报 Access denied。
+    #   2026-09-15 服务器安全加固时轮换，完整凭据见服务器 /root/credentials-20260915.txt
     # 注意：characterEncoding 必须填 Java 字符集名 UTF-8（不是 utf8mb4），
     # Connector/J 8 会自动与服务端协商为 utf8mb4；写成 utf8mb4 会直接启动失败。
     url: jdbc:mysql://120.48.43.201:3306/study_db?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: Aa@123
+    password: mMq8zhwTCwE9JnqCoIzAFlb7VAbp
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       minimum-idle: 5
